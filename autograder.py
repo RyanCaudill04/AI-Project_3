@@ -14,7 +14,8 @@
 
 # imports from python standard library
 import grading
-import imp
+import importlib
+import importlib.util
 import optparse
 import os
 import re
@@ -120,26 +121,28 @@ def setModuleName(module, filename):
         # print i, type(o)
 
 
-#from cStringIO import StringIO
-
 def loadModuleString(moduleSource):
-    # Below broken, imp doesn't believe its being passed a file:
-    #    ValueError: load_module arg#2 should be a file or None
-    #
-    #f = StringIO(moduleCodeDict[k])
-    #tmp = imp.load_module(k, f, k, (".py", "r", imp.PY_SOURCE))
-    tmp = imp.new_module(k)
-    exec(moduleCodeDict[k], tmp.__dict__)
-    setModuleName(tmp, k)
-    return tmp
+    """
+    Load a module from a string using importlib.
+    """
+    moduleName = "dynamic_module"
+    spec = importlib.util.spec_from_loader(moduleName, loader=None)
+    module = importlib.util.module_from_spec(spec)
+    exec(moduleSource, module.__dict__)
+    return module
 
 
 import py_compile
 
 
 def loadModuleFile(moduleName, filePath):
-    with open(filePath, 'r') as f:
-        return imp.load_module(moduleName, f, "%s.py" % moduleName, (".py", "r", imp.PY_SOURCE))
+    """
+    Load a module from a file using importlib.
+    """
+    spec = importlib.util.spec_from_file_location(moduleName, filePath)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def readFile(path, root=""):
