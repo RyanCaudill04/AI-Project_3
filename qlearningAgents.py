@@ -168,39 +168,47 @@ class ApproximateQAgent(PacmanQAgent):
        ApproximateQLearningAgent
 
        You should only have to overwrite getQValue
-       and update.  All other QLearningAgent functions
+       and update. All other QLearningAgent functions
        should work as is.
     """
     def __init__(self, extractor='IdentityExtractor', **args):
         self.featExtractor = util.lookup(extractor, globals())()
         PacmanQAgent.__init__(self, **args)
-        self.weights = util.Counter()
+        self.weights = util.Counter()  # Initialize weights as a Counter (dictionary-like structure)
 
     def getWeights(self):
         return self.weights
 
     def getQValue(self, state, action):
         """
-          Should return Q(state,action) = w * featureVector
-          where * is the dotProduct operator
+          Should return Q(state, action) = w * featureVector
+          where * is the dotProduct operator.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Extract features for the given state and action
+        features = self.featExtractor.getFeatures(state, action)
+        # Compute the dot product of weights and features
+        return sum(self.weights[feature] * value for feature, value in features.items())
 
     def update(self, state, action, nextState, reward):
         """
-           Should update your weights based on transition
+           Should update your weights based on the transition.
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # Compute the difference (reward + discount * max Q-value of next state - current Q-value)
+        current_q_value = self.getQValue(state, action)
+        max_next_q_value = self.computeValueFromQValues(nextState)
+        difference = (reward + self.discount * max_next_q_value) - current_q_value
+
+        # Update weights for each feature
+        features = self.featExtractor.getFeatures(state, action)
+        for feature, value in features.items():
+            self.weights[feature] += self.alpha * difference * value
 
     def final(self, state):
         "Called at the end of each game."
-        # call the super-class final method
+        # Call the super-class final method
         PacmanQAgent.final(self, state)
 
-        # did we finish training?
+        # Did we finish training?
         if self.episodesSoFar == self.numTraining:
-            # you might want to print your weights here for debugging
-            "*** YOUR CODE HERE ***"
-            pass
+            # You might want to print your weights here for debugging
+            print("Final weights:", self.weights)
